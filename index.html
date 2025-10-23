@@ -9,6 +9,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+    <!-- خط عربي مدمج -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-font-arabic@0.0.3/dist/Cairo-Regular-normal.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
 
@@ -425,7 +428,7 @@
                 <div class="logo-text">سوبر سمارت</div>
             </div>
             <h1>نظام عروض الأسعار الإحترافي</h1>
-            <p class="subtitle">إنشاء عروض أسعار احترافية بتصميم مميز مع دعم اللغة العربية</p>
+            <p class="subtitle">إنشاء عروض أسعار احترافية بتصميم مميز مع دعم كامل للغة العربية</p>
         </div>
 
         <div class="content">
@@ -506,7 +509,7 @@
 
         <div class="footer">
             <div class="footer-text">© 2025 شركة سوبر سمارت. جميع الحقوق محفوظة.</div>
-            <div class="powered-by">Powered by Super Smart</div>
+            <div class="powered-by">Powered by Dr Business</div>
         </div>
     </div>
 
@@ -706,10 +709,6 @@
             document.getElementById('total').textContent = total.toFixed(2) + ' ج.م';
         }
 
-        function reverseArabicText(text) {
-            return text.split('').reverse().join('');
-        }
-
         function generatePDF() {
             if (typeof window.jspdf === 'undefined') {
                 alert('⏳ جاري تحميل مكتبات PDF، يرجى الانتظار...');
@@ -721,14 +720,14 @@
                 var jsPDF = window.jspdf.jsPDF;
                 var doc = new jsPDF();
 
+                // استخدام الخط العربي Cairo
+                doc.setFont('Cairo-Regular', 'normal');
+
                 var clientName = document.getElementById('clientName').value || 'غير محدد';
                 var quoteNumber = document.getElementById('quoteNumber').value || 'SS-' + Date.now();
                 var quoteDate = document.getElementById('quoteDate').value || 'غير محدد';
                 var validUntil = document.getElementById('validUntil').value || 'غير محدد';
                 var notes = document.getElementById('notes').value;
-
-                // استخدام الخط الافتراضي بدون مشاكل
-                doc.setFont('helvetica');
 
                 // HEADER
                 doc.setFillColor(102, 126, 234);
@@ -743,17 +742,13 @@
 
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(20);
-                doc.text('Price Quotation', 105, 23, { align: 'center' });
+                doc.setFont('Cairo-Regular');
+                doc.text('عرض سعر', 190, 23, { align: 'right' });
                 doc.setFontSize(12);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Professional Quote', 105, 32, { align: 'center' });
+                doc.text('عرض أسعار احترافي', 190, 32, { align: 'right' });
 
                 doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Quote #: ' + quoteNumber, 190, 25, { align: 'right' });
-                doc.setFont('helvetica', 'normal');
-                doc.text('Date: ' + quoteDate, 190, 32, { align: 'right' });
-                doc.text('Valid Until: ' + validUntil, 190, 39, { align: 'right' });
+                doc.text('رقم: ' + quoteNumber, 190, 42, { align: 'right' });
 
                 doc.setDrawColor(102, 126, 234);
                 doc.setLineWidth(0.5);
@@ -761,25 +756,27 @@
 
                 // معلومات العميل
                 doc.setFillColor(248, 249, 255);
-                doc.roundedRect(15, 60, 180, 20, 3, 3, 'F');
+                doc.roundedRect(15, 60, 180, 25, 3, 3, 'F');
 
                 doc.setTextColor(60, 60, 60);
                 doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text('PREPARED FOR:', 20, 68);
+                doc.text('المعد لـ:', 190, 68, { align: 'right' });
 
                 doc.setTextColor(28, 30, 33);
                 doc.setFontSize(12);
-                doc.text(clientName, 20, 75);
+                doc.text(clientName, 190, 75, { align: 'right' });
+
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text('التاريخ: ' + quoteDate, 190, 81, { align: 'right' });
 
                 // عنوان الجدول
                 doc.setTextColor(102, 126, 234);
                 doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('PRODUCTS & SERVICES', 15, 92);
+                doc.text('المنتجات والخدمات', 190, 95, { align: 'right' });
 
                 doc.setFillColor(102, 126, 234);
-                doc.rect(15, 94, 65, 1, 'F');
+                doc.rect(145, 97, 50, 1, 'F');
 
                 // جمع بيانات المنتجات
                 var products = document.querySelectorAll('.product-card');
@@ -788,47 +785,47 @@
 
                 for (var i = 0; i < products.length; i++) {
                     var product = products[i];
-                    var name = product.querySelector('.product-name').value || 'Unnamed Product';
+                    var name = product.querySelector('.product-name').value || 'منتج بدون اسم';
                     var quantity = parseFloat(product.querySelector('.quantity').value) || 0;
                     var price = parseFloat(product.querySelector('.price').value) || 0;
                     var total = quantity * price;
                     subtotal += total;
 
                     tableData.push([
-                        (i + 1).toString(),
-                        name,
+                        total.toFixed(2),
+                        price.toFixed(2),
                         quantity.toString(),
-                        price.toFixed(2) + ' EGP',
-                        total.toFixed(2) + ' EGP'
+                        name,
+                        (i + 1).toString()
                     ]);
                 }
 
                 // الجدول
                 doc.autoTable({
-                    startY: 100,
-                    head: [['#', 'Product/Service', 'Qty', 'Price', 'Total']],
+                    startY: 105,
+                    head: [['الإجمالي', 'السعر', 'الكمية', 'المنتج/الخدمة', '#']],
                     body: tableData,
                     theme: 'grid',
+                    styles: {
+                        font: 'Cairo-Regular',
+                        halign: 'center',
+                        fontSize: 9
+                    },
                     headStyles: {
                         fillColor: [102, 126, 234],
                         textColor: [255, 255, 255],
                         fontSize: 10,
-                        fontStyle: 'bold',
-                        halign: 'center'
-                    },
-                    bodyStyles: {
-                        fontSize: 9,
-                        halign: 'center'
+                        fontStyle: 'bold'
                     },
                     alternateRowStyles: {
                         fillColor: [248, 249, 255]
                     },
                     columnStyles: {
-                        0: { cellWidth: 15 },
-                        1: { cellWidth: 80, halign: 'left' },
-                        2: { cellWidth: 20 },
-                        3: { cellWidth: 35 },
-                        4: { cellWidth: 35 }
+                        0: { cellWidth: 30, halign: 'center' },
+                        1: { cellWidth: 30, halign: 'center' },
+                        2: { cellWidth: 20, halign: 'center' },
+                        3: { cellWidth: 90, halign: 'right' },
+                        4: { cellWidth: 15, halign: 'center' }
                     },
                     margin: { left: 15, right: 15 }
                 });
@@ -839,41 +836,36 @@
                 var total = subtotal + tax;
 
                 doc.setFillColor(248, 249, 255);
-                doc.roundedRect(120, finalY, 75, 35, 3, 3, 'F');
+                doc.roundedRect(15, finalY, 75, 35, 3, 3, 'F');
                 doc.setDrawColor(102, 126, 234);
                 doc.setLineWidth(0.5);
-                doc.roundedRect(120, finalY, 75, 35, 3, 3, 'S');
+                doc.roundedRect(15, finalY, 75, 35, 3, 3, 'S');
 
                 doc.setTextColor(60, 60, 60);
                 doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Subtotal:', 125, finalY + 8);
-                doc.text('VAT (14%):', 125, finalY + 16);
-                doc.text('TOTAL:', 125, finalY + 27);
+                doc.text('الإجمالي قبل الضريبة:', 85, finalY + 8, { align: 'right' });
+                doc.text('ضريبة القيمة المضافة (14%):', 85, finalY + 16, { align: 'right' });
+                doc.text('الإجمالي النهائي:', 85, finalY + 27, { align: 'right' });
 
                 doc.setTextColor(28, 30, 33);
-                doc.setFont('helvetica', 'normal');
-                doc.text(subtotal.toFixed(2) + ' EGP', 188, finalY + 8, { align: 'right' });
-                doc.text(tax.toFixed(2) + ' EGP', 188, finalY + 16, { align: 'right' });
+                doc.text(subtotal.toFixed(2) + ' ج.م', 22, finalY + 8, { align: 'left' });
+                doc.text(tax.toFixed(2) + ' ج.م', 22, finalY + 16, { align: 'left' });
 
                 doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
                 doc.setTextColor(102, 126, 234);
-                doc.text(total.toFixed(2) + ' EGP', 188, finalY + 27, { align: 'right' });
+                doc.text(total.toFixed(2) + ' ج.م', 22, finalY + 27, { align: 'left' });
 
                 // الملاحظات
                 if (notes) {
                     var notesY = finalY + 42;
                     doc.setTextColor(102, 126, 234);
                     doc.setFontSize(11);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('NOTES:', 15, notesY);
+                    doc.text('ملاحظات:', 190, notesY, { align: 'right' });
 
                     doc.setTextColor(60, 60, 60);
                     doc.setFontSize(9);
-                    doc.setFont('helvetica', 'normal');
                     var splitNotes = doc.splitTextToSize(notes, 180);
-                    doc.text(splitNotes, 15, notesY + 6);
+                    doc.text(splitNotes, 190, notesY + 6, { align: 'right' });
                 }
 
                 // Footer
@@ -886,7 +878,7 @@
                 doc.setTextColor(120, 120, 120);
                 doc.setFont('helvetica', 'italic');
                 var genDate = new Date();
-                doc.text('Generated: ' + genDate.toLocaleDateString('en-US'), 105, footerY + 5, { align: 'center' });
+                doc.text('تم الإنشاء: ' + genDate.toLocaleDateString('ar-EG'), 105, footerY + 5, { align: 'center' });
 
                 // Powered by
                 var poweredY = footerY + 11;
@@ -901,10 +893,10 @@
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(102, 126, 234);
-                doc.text('Powered by Super Smart', 105, poweredY + 2, { align: 'center' });
+                doc.text('Powered by Dr Business', 105, poweredY + 2, { align: 'center' });
 
                 // حفظ
-                doc.save('Quote_' + quoteNumber + '_' + clientName + '.pdf');
+                doc.save('عرض_سعر_' + quoteNumber + '_' + clientName + '.pdf');
                 alert('✅ تم إنشاء عرض السعر بنجاح!');
 
             } catch (e) {
