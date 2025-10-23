@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام عروض الأسعار - سوبر سمارت</title>
+
+    <!-- Arabic Font for PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            background: rgba(255,255,255,0.95);
+            display: inline-block;
+            padding: 20px 50px;
+            border-radius: 60px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .logo-text {
+            color: #667eea;
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.95);
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .content { padding: 45px 40px; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 40px 0 25px 0;
+            padding-bottom: 18px;
+            border-bottom: 3px solid #f0f2f5;
+        }
+
+        .section-icon { font-size: 28px; }
+
+        .section-title {
+            color: #1C1E21;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            padding: 35px;
+            border-radius: 20px;
+            border: 2px solid #e8f4ff;
+            margin-bottom: 35px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.08);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1C1E21;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], input[type="date"], input[type="number"], textarea, input[type="file"], select {
+            padding: 16px 18px;
+            border: 2px solid #e4e6eb;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            background: white;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-excel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .upload-excel input[type="file"] {
+            display: none;
+        }
+
+        .upload-label {
+            background: white;
+            color: #667eea;
+            padding: 12px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .upload-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .product-card {
+            background: white;
+            border: 2px solid #e8f4ff;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            border-color: #667eea;
+        }
+
+        .product-number {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .product-inputs {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .product-image-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid #e4e6eb;
+            display: none;
+            margin-top: 10px;
+        }
+
+        .product-image-preview.show {
+            display: block;
+        }
+
+        .autocomplete {
+            position: relative;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 2px solid #e4e6eb;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            right: 0;
+            left: 0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .autocomplete-items div {
+            padding: 12px 18px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f2f5;
+            transition: all 0.2s;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: #f8f9ff;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .total-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .total-label {
+            font-size: 12px;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .total-value {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-family: 'Cairo', sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-remove {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: white;
+            padding: 12px 24px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .btn-remove:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 68, 68, 0.4);
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #42b72a 0%, #36a420 100%);
+            color: white;
+            width: 100%;
+            padding: 24px;
+            font-size: 18px;
+            margin-top: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(66, 183, 42, 0.4);
+        }
+
+        .summary-section {
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 35px 0;
+            border: 2px solid #d4ebff;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+            border-color: #667eea;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #65676B;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 700;
+        }
+
+        .summary-value {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 35px;
+            border-top: 3px solid #e4e6eb;
+        }
+
+        .footer-text {
+            color: #65676B;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .powered-by {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .powered-by::before {
+            content: '⚡';
+            font-size: 22px;
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: 35px 25px; }
+            .content { padding: 30px 20px; }
+            .logo-text { font-size: 32px; }
+            h1 { font-size: 28px; }
+            .product-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-text">سوبر سمارت</div>
+            </div>
+            <h1>نظام عروض الأسعار الإحترافي</h1>
+            <p class="subtitle">إنشاء عروض أسعار احترافية بتصميم مميز مع دعم اللغة العربية</p>
+        </div>
+
+        <div class="content">
+            <!-- رفع ملف Excel -->
+            <div class="upload-excel">
+                <h3 style="margin-bottom: 15px;">📁 رفع قائمة المنتجات من Excel</h3>
+                <input type="file" id="excelFile" accept=".xlsx, .xls">
+                <label for="excelFile" class="upload-label">
+                    📤 اختر ملف Excel
+                </label>
+                <p id="fileStatus" style="margin-top: 10px; font-size: 14px;"></p>
+            </div>
+
+            <div class="section-header">
+                <span class="section-icon">📋</span>
+                <h2 class="section-title">معلومات عرض السعر</h2>
+            </div>
+
+            <div class="info-card">
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label>اسم الجهة / العميل</label>
+                        <input type="text" id="clientName" placeholder="مثال: شركة التقنية الحديثة">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم عرض السعر</label>
+                        <input type="text" id="quoteNumber" placeholder="مثال: SS-2025-001">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ عرض السعر</label>
+                        <input type="date" id="quoteDate">
+                    </div>
+                    <div class="form-group">
+                        <label>صالح حتى</label>
+                        <input type="date" id="validUntil">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>ملاحظات إضافية (اختياري)</label>
+                        <textarea id="notes" placeholder="أي ملاحظات أو شروط إضافية..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <span class="section-icon">📦</span>
+                <h2 class="section-title">المنتجات والخدمات</h2>
+            </div>
+
+            <div id="productsContainer"></div>
+
+            <button class="btn btn-primary" id="addProductBtn">+ إضافة منتج جديد</button>
+
+            <div class="summary-section">
+                <div class="section-header" style="margin: 0 0 25px 0;">
+                    <span class="section-icon">💰</span>
+                    <h2 class="section-title" style="margin: 0; border: none;">ملخص الأسعار</h2>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-label">الإجمالي قبل الضريبة</div>
+                        <div class="summary-value" id="subtotal">0.00 ج.م</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">ضريبة القيمة المضافة (14%)</div>
+                        <div class="summary-value" id="tax">0.00 ج.م</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">الإجمالي النهائي</div>
+                        <div class="summary-value" id="total">0.00 ج.م</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-generate" id="generateBtn">
+                <span style="font-size: 24px;">📄</span>
+                <span>توليد عرض السعر PDF</span>
+            </button>
+        </div>
+
+        <div class="footer">
+            <div class="footer-text">© 2025 شركة سوبر سمارت. جميع الحقوق محفوظة.</div>
+            <div class="powered-by">Powered by Dr Business</div>
+        </div>
+    </div>
+
+    <script>
+        var productCount = 0;
+        var productsData = [];
+        var currentAutocomplete = null;
+
+        // تهيئة الصفحة
+        window.addEventListener('DOMContentLoaded', function() {
+            var today = new Date().toISOString().split('T')[0];
+            var validDate = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0];
+
+            document.getElementById('quoteDate').value = today;
+            document.getElementById('validUntil').value = validDate;
+
+            document.getElementById('addProductBtn').addEventListener('click', addProduct);
+            document.getElementById('generateBtn').addEventListener('click', generatePDF);
+            document.getElementById('excelFile').addEventListener('change', handleExcelUpload);
+
+            addProduct();
+        });
+
+        // رفع ملف Excel
+        function handleExcelUpload(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var data = new Uint8Array(e.target.result);
+                    var workbook = XLSX.read(data, {type: 'array'});
+                    var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    var jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                    productsData = jsonData;
+                    document.getElementById('fileStatus').textContent = '✅ تم تحميل ' + productsData.length + ' منتج';
+                    document.getElementById('fileStatus').style.color = '#42b72a';
+                } catch(err) {
+                    document.getElementById('fileStatus').textContent = '❌ خطأ في قراءة الملف';
+                    document.getElementById('fileStatus').style.color = '#ff4444';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function addProduct() {
+            productCount++;
+            var container = document.getElementById('productsContainer');
+            var card = document.createElement('div');
+            card.className = 'product-card';
+            card.id = 'product-' + productCount;
+
+            var html = '<div class="product-number">' + productCount + '</div>';
+            html += '<div class="product-inputs">';
+            html += '<div class="form-group autocomplete">';
+            html += '<label>اسم المنتج / الخدمة</label>';
+            html += '<input type="text" class="product-name" placeholder="ابحث عن المنتج...">';
+            html += '</div>';
+            html += '<div class="form-group">';
+            html += '<label>الكمية</label>';
+            html += '<input type="number" class="quantity" placeholder="1" min="1" value="1">';
+            html += '</div>';
+            html += '<div class="form-group">';
+            html += '<label>السعر (ج.م)</label>';
+            html += '<input type="number" class="price" placeholder="0.00" min="0" step="0.01">';
+            html += '</div>';
+            html += '<div class="form-group">';
+            html += '<label>الإجمالي (ج.م)</label>';
+            html += '<input type="number" class="item-total" readonly style="background: #f0f2f5; cursor: not-allowed;">';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="form-group">';
+            html += '<label>صورة المنتج (اختياري)</label>';
+            html += '<input type="file" class="product-image" accept="image/*" style="font-size: 14px;">';
+            html += '<img class="product-image-preview" src="" alt="معاينة">';
+            html += '</div>';
+            html += '<div class="total-display">';
+            html += '<div class="total-label">إجمالي هذا المنتج</div>';
+            html += '<div class="total-value item-total-display">0.00 ج.م</div>';
+            html += '</div>';
+            html += '<button class="btn btn-remove" data-product-id="product-' + productCount + '">✕ حذف المنتج</button>';
+
+            card.innerHTML = html;
+            container.appendChild(card);
+
+            // ربط events
+            var nameInput = card.querySelector('.product-name');
+            nameInput.addEventListener('input', function() {
+                autocomplete(this);
+            });
+
+            var inputs = card.querySelectorAll('input.quantity, input.price');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].addEventListener('input', calculateTotal);
+            }
+
+            var imageInput = card.querySelector('.product-image');
+            imageInput.addEventListener('change', function() {
+                handleImageUpload(this);
+            });
+
+            var removeBtn = card.querySelector('.btn-remove');
+            removeBtn.addEventListener('click', function() {
+                var id = this.getAttribute('data-product-id');
+                removeProduct(id);
+            });
+        }
+
+        // البحث التلقائي
+        function autocomplete(inp) {
+            var val = inp.value;
+            closeAllLists();
+            if (!val || productsData.length === 0) return;
+
+            currentAutocomplete = inp;
+            var a = document.createElement('DIV');
+            a.setAttribute('class', 'autocomplete-items');
+            inp.parentNode.appendChild(a);
+
+            for (var i = 0; i < productsData.length; i++) {
+                var productName = productsData[i]['اسم المنتج'] || '';
+                if (productName.indexOf(val) > -1) {
+                    var b = document.createElement('DIV');
+                    b.innerHTML = '<strong>' + productName + '</strong><br>';
+                    b.innerHTML += '<small>' + productsData[i]['السعر'] + ' ج.م</small>';
+                    b.setAttribute('data-index', i);
+                    b.addEventListener('click', function() {
+                        var idx = this.getAttribute('data-index');
+                        var product = productsData[idx];
+                        var card = inp.closest('.product-card');
+                        card.querySelector('.product-name').value = product['اسم المنتج'];
+                        card.querySelector('.price').value = product['السعر'];
+                        calculateTotal();
+                        closeAllLists();
+                    });
+                    a.appendChild(b);
+                }
+            }
+        }
+
+        function closeAllLists() {
+            var items = document.getElementsByClassName('autocomplete-items');
+            for (var i = 0; i < items.length; i++) {
+                items[i].parentNode.removeChild(items[i]);
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            closeAllLists();
+        });
+
+        // رفع صورة المنتج
+        function handleImageUpload(input) {
+            var file = input.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var card = input.closest('.product-card');
+                    var preview = card.querySelector('.product-image-preview');
+                    preview.src = e.target.result;
+                    preview.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeProduct(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.style.opacity = '0';
+                el.style.transform = 'scale(0.9)';
+                setTimeout(function() {
+                    el.remove();
+                    calculateTotal();
+                }, 300);
+            }
+        }
+
+        function calculateTotal() {
+            var products = document.querySelectorAll('.product-card');
+            var subtotal = 0;
+
+            for (var i = 0; i < products.length; i++) {
+                var product = products[i];
+                var quantity = parseFloat(product.querySelector('.quantity').value) || 0;
+                var price = parseFloat(product.querySelector('.price').value) || 0;
+                var itemTotal = quantity * price;
+
+                product.querySelector('.item-total').value = itemTotal.toFixed(2);
+                product.querySelector('.item-total-display').textContent = itemTotal.toFixed(2) + ' ج.م';
+
+                subtotal += itemTotal;
+            }
+
+            var tax = subtotal * 0.14;
+            var total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2) + ' ج.م';
+            document.getElementById('tax').textContent = tax.toFixed(2) + ' ج.م';
+            document.getElementById('total').textContent = total.toFixed(2) + ' ج.م';
+        }
+
+        function generatePDF() {
+            if (typeof window.jspdf === 'undefined') {
+                alert('⏳ جاري تحميل مكتبات PDF، يرجى الانتظار...');
+                setTimeout(generatePDF, 500);
+                return;
+            }
+
+            try {
+                var jsPDF = window.jspdf.jsPDF;
+                var doc = new jsPDF();
+
+                var clientName = document.getElementById('clientName').value || 'غير محدد';
+                var quoteNumber = document.getElementById('quoteNumber').value || 'SS-' + Date.now();
+                var quoteDate = document.getElementById('quoteDate').value || 'غير محدد';
+                var validUntil = document.getElementById('validUntil').value || 'غير محدد';
+                var notes = document.getElementById('notes').value;
+
+                // إضافة الخط العربي
+                doc.addFont('https://cdn.jsdelivr.net/gh/Kafiil/ar-fonts@main/fonts/Amiri/Amiri-Regular.ttf', 'Amiri', 'normal');
+                doc.setFont('Amiri');
+
+                // HEADER
+                doc.setFillColor(102, 126, 234);
+                doc.rect(0, 0, 210, 55, 'F');
+
+                doc.setFillColor(255, 255, 255);
+                doc.roundedRect(15, 12, 50, 25, 4, 4, 'F');
+                doc.setTextColor(102, 126, 234);
+                doc.setFontSize(18);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Super Smart', 40, 27, { align: 'center' });
+
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(20);
+                doc.setFont('Amiri');
+                doc.text('عرض سعر', 105, 23, { align: 'center' });
+                doc.setFontSize(12);
+                doc.text('عرض أسعار احترافي', 105, 32, { align: 'center' });
+
+                doc.setFontSize(10);
+                doc.text('رقم العرض: ' + quoteNumber, 190, 25, { align: 'right' });
+                doc.text('التاريخ: ' + quoteDate, 190, 32, { align: 'right' });
+                doc.text('صالح حتى: ' + validUntil, 190, 39, { align: 'right' });
+
+                doc.setDrawColor(102, 126, 234);
+                doc.setLineWidth(0.5);
+                doc.line(15, 48, 195, 48);
+
+                // معلومات العميل
+                doc.setFillColor(248, 249, 255);
+                doc.roundedRect(15, 60, 180, 20, 3, 3, 'F');
+
+                doc.setTextColor(60, 60, 60);
+                doc.setFontSize(10);
+                doc.text('المعد لـ:', 190, 68, { align: 'right' });
+
+                doc.setTextColor(28, 30, 33);
+                doc.setFontSize(12);
+                doc.text(clientName, 190, 75, { align: 'right' });
+
+                // عنوان الجدول
+                doc.setTextColor(102, 126, 234);
+                doc.setFontSize(14);
+                doc.text('المنتجات والخدمات', 190, 92, { align: 'right' });
+
+                doc.setFillColor(102, 126, 234);
+                doc.rect(145, 94, 50, 1, 'F');
+
+                // جمع بيانات المنتجات
+                var products = document.querySelectorAll('.product-card');
+                var tableData = [];
+                var subtotal = 0;
+
+                for (var i = 0; i < products.length; i++) {
+                    var product = products[i];
+                    var name = product.querySelector('.product-name').value || 'منتج بدون اسم';
+                    var quantity = parseFloat(product.querySelector('.quantity').value) || 0;
+                    var price = parseFloat(product.querySelector('.price').value) || 0;
+                    var total = quantity * price;
+                    subtotal += total;
+
+                    tableData.push([
+                        total.toFixed(2) + ' ج.م',
+                        price.toFixed(2) + ' ج.م',
+                        quantity.toString(),
+                        name,
+                        (i + 1).toString()
+                    ]);
+                }
+
+                // الجدول
+                doc.autoTable({
+                    startY: 100,
+                    head: [['الإجمالي', 'السعر', 'الكمية', 'المنتج/الخدمة', '#']],
+                    body: tableData,
+                    theme: 'grid',
+                    styles: {
+                        font: 'Amiri',
+                        fontStyle: 'normal',
+                        halign: 'center'
+                    },
+                    headStyles: {
+                        fillColor: [102, 126, 234],
+                        textColor: [255, 255, 255],
+                        fontSize: 10,
+                        fontStyle: 'bold'
+                    },
+                    bodyStyles: {
+                        fontSize: 9
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 249, 255]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 35 },
+                        1: { cellWidth: 30 },
+                        2: { cellWidth: 20 },
+                        3: { cellWidth: 85, halign: 'right' },
+                        4: { cellWidth: 15 }
+                    },
+                    margin: { left: 15, right: 15 }
+                });
+
+                // الملخص المالي
+                var finalY = doc.lastAutoTable.finalY + 10;
+                var tax = subtotal * 0.14;
+                var total = subtotal + tax;
+
+                doc.setFillColor(248, 249, 255);
+                doc.roundedRect(15, finalY, 75, 35, 3, 3, 'F');
+                doc.setDrawColor(102, 126, 234);
+                doc.setLineWidth(0.5);
+                doc.roundedRect(15, finalY, 75, 35, 3, 3, 'S');
+
+                doc.setTextColor(60, 60, 60);
+                doc.setFontSize(10);
+                doc.text('الإجمالي قبل الضريبة:', 85, finalY + 8, { align: 'right' });
+                doc.text('ضريبة القيمة المضافة (14%):', 85, finalY + 16, { align: 'right' });
+                doc.text('الإجمالي النهائي:', 85, finalY + 27, { align: 'right' });
+
+                doc.setTextColor(28, 30, 33);
+                doc.text(subtotal.toFixed(2) + ' ج.م', 22, finalY + 8, { align: 'left' });
+                doc.text(tax.toFixed(2) + ' ج.م', 22, finalY + 16, { align: 'left' });
+
+                doc.setFontSize(12);
+                doc.setTextColor(102, 126, 234);
+                doc.text(total.toFixed(2) + ' ج.م', 22, finalY + 27, { align: 'left' });
+
+                // الملاحظات
+                if (notes) {
+                    var notesY = finalY + 42;
+                    doc.setTextColor(102, 126, 234);
+                    doc.setFontSize(11);
+                    doc.text('ملاحظات:', 190, notesY, { align: 'right' });
+
+                    doc.setTextColor(60, 60, 60);
+                    doc.setFontSize(9);
+                    var splitNotes = doc.splitTextToSize(notes, 180);
+                    doc.text(splitNotes, 190, notesY + 6, { align: 'right' });
+                }
+
+                // Footer
+                var footerY = 280;
+                doc.setDrawColor(228, 230, 235);
+                doc.setLineWidth(0.5);
+                doc.line(15, footerY, 195, footerY);
+
+                doc.setFontSize(8);
+                doc.setTextColor(120, 120, 120);
+                doc.setFont('helvetica', 'italic');
+                var genDate = new Date();
+                doc.text('تم الإنشاء في: ' + genDate.toLocaleDateString('ar-EG'), 105, footerY + 5, { align: 'center' });
+
+                // Powered by
+                var poweredY = footerY + 11;
+                doc.setFillColor(102, 126, 234);
+                doc.setGState(doc.GState({ opacity: 0.05 }));
+                doc.roundedRect(70, poweredY - 4, 70, 9, 2, 2, 'F');
+                doc.setGState(doc.GState({ opacity: 1 }));
+
+                doc.setFontSize(11);
+                doc.text('⚡', 83, poweredY + 2);
+
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(102, 126, 234);
+                doc.text('Powered by Dr Business', 105, poweredY + 2, { align: 'center' });
+
+                // حفظ
+                doc.save('عرض_سعر_' + quoteNumber + '_' + clientName + '.pdf');
+                alert('✅ تم إنشاء عرض السعر بنجاح!');
+
+            } catch (e) {
+                console.error('PDF Error:', e);
+                alert('❌ خطأ في إنشاء PDF: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
